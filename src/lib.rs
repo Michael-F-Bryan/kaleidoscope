@@ -1,7 +1,5 @@
 extern crate failure;
-#[macro_use]
-extern crate failure_derive;
-extern crate regex;
+extern crate lalrpop_util;
+extern crate void;
 
-pub mod lexer;
 pub mod tokens;

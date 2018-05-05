@@ -1,4 +1,5 @@
-use lexer::Lexer;
+use lalrpop_util::Lexer;
+use void::Void;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Token<'input> {
@@ -8,7 +9,7 @@ pub enum Token<'input> {
     Extern,
 }
 
-pub fn construct_lexer(src: &str) -> Lexer<Token> {
+pub fn construct_lexer(src: &str) -> Lexer<Token, Void> {
     let mut lexer = Lexer::new(src).skipping(r"^\s+|#.*$");
 
     // keywords
