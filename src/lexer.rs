@@ -2,13 +2,92 @@ use failure::Error;
 use regex::Regex;
 
 #[derive(Debug, Copy, Clone, PartialEq, Fail)]
-#[fail(display = "Unrecognised token, {}", next_char)]
+#[fail(display = "Unrecognised token, {} at index {}", next_char, index)]
 pub struct LexError {
     pub index: usize,
     pub next_char: char,
 }
 
 /// A generic table-based lexer.
+///
+/// This works by registering a bunch of token patterns and *Token Constructors*
+/// which let you convert the matched text into a custom `Token` type. When
+/// tokenizing, the lexer will try each pattern in turn until it finds a match
+/// and use the corresponding token constructor to create a token and return it.
+///
+/// # Examples
+///
+/// Here's how you would tokenize a trivial language consisting of just integers
+/// and words, where all whitespace is ignored.
+///
+/// ```rust
+/// # extern crate failure;
+/// # extern crate kaleidoscope;
+/// # use kaleidoscope::lexer::Lexer;
+/// #[derive(Debug, PartialEq)]
+/// pub enum Token {
+///   Integer(i64),
+///   Word(String),
+/// }
+///
+/// # fn run() -> Result<(), failure::Error> {
+/// let src = "Hello 5 world";
+///
+/// // create the lexer
+/// let mut lexer = Lexer::new(src);
+///
+/// // register a bunch of patterns so it knows how to create tokens
+/// lexer.register_pattern(r"^\d+", |s| Ok(Token::Integer(s.parse().unwrap())));
+/// lexer.register_pattern(r"^\w+", |s| Ok(Token::Word(s.to_string())));
+///
+/// // then run the lexer to completion, bailing on the first error
+/// let got = lexer.collect::<Result<Vec<_>, _>>()?;
+///
+/// // Extract just the tokens out of the resulting list of positions and tokens
+/// let tokens: Vec<Token> = got.into_iter()
+///                             .map(|(_start, tok, _end)| tok)
+///                             .collect();
+///
+/// let should_be = vec![Token::Word(String::from("Hello")),
+///                      Token::Integer(5),
+///                      Token::Word(String::from("world"))];
+///
+/// // as a sanity check, make sure we got back what we expected
+/// assert_eq!(tokens, should_be);
+/// # Ok(())
+/// # }
+/// # fn main() { run().unwrap() }
+/// ```
+///
+/// If you want to avoid unnecessary copies, the `Token` type can contain
+/// references to the original source code.
+///
+/// ```rust
+/// # extern crate failure;
+/// # extern crate kaleidoscope;
+/// # use kaleidoscope::lexer::Lexer;
+/// #[derive(Debug, PartialEq)]
+/// pub enum Token<'input> {
+///   Integer(i64),
+///   Word(&'input str), // <-- borrowing part of the original string
+/// }
+///
+/// # fn run() -> Result<(), failure::Error> {
+/// let src = "Hello 5 world";
+///
+/// let mut lexer = Lexer::new(src);
+///
+/// lexer.register_pattern(r"^\d+", |s| Ok(Token::Integer(s.parse().unwrap())));
+/// lexer.register_pattern(r"^\w+", |s| Ok(Token::Word(s)));  // <-- no "to_string()"!
+///
+/// let got = lexer.collect::<Result<Vec<_>, _>>()?;
+/// # Ok(())
+/// # }
+/// # fn main() { run().unwrap() }
+/// ```
+///
+/// This is completely safe because the `Token: 'input` lifetime on `Lexer` will
+/// ensure tokens can never outlive their source code.
 pub struct Lexer<'input, Token: 'input> {
     src: &'input str,
     patterns: Vec<(Regex, Box<Fn(&'input str) -> Result<Token, Error>>)>,
@@ -59,6 +138,31 @@ impl<'input, Token: 'input> Lexer<'input, Token> {
     }
 
     /// Set a custom skip pattern.
+    ///
+    /// # Examples
+    ///
+    /// A common desire is the ability to have a lexer which skips whitespace
+    /// and ignores the rest of the line when encountering a specific character
+    /// (e.g. `#`).
+    ///
+    /// ```rust
+    /// # extern crate kaleidoscope;
+    /// # use kaleidoscope::lexer::Lexer;
+    /// # fn make_lexer() -> Lexer<'static, &'static str> {
+    /// # let some_source_text = "# this is a comment\ntext";
+    /// let lexer = Lexer::new(some_source_text).skipping(r"^\s+|(?m)#.*$");
+    /// # lexer
+    /// # }
+    /// # // make sure our pattern actually does what it says it does
+    /// # fn main() {
+    /// #  let mut l = make_lexer();
+    /// #  l.register_pattern(r"^\w+", |s| Ok(s));
+    /// #  assert_eq!(l.next().unwrap().unwrap().1, "text");
+    /// # }
+    /// ```
+    ///
+    /// Note that you need to enable multiline regex patterns (`(?m)`) when
+    /// skipping to the end of a line.
     pub fn skipping(self, pattern: &str) -> Lexer<'input, Token> {
         assert!(
             pattern.starts_with("^"),
