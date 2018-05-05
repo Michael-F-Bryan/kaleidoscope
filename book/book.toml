@@ -6,6 +6,7 @@ title = "Rust Kaleidoscope"
 [output.html]
 
 [output.linkcheck]
+follow-web-links = true
 
 [build]
 build-dir = "../target/book"
