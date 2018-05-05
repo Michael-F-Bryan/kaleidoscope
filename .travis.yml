@@ -1,46 +1,43 @@
 language: rust
-
 cache:
-  - apt
-  - cargo
-
+- apt
+- cargo
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
-      - llvm-toolchain-precise-3.8
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.8
     packages:
-      - llvm-3.8-dev
-      - libelf-dev
-      - lib32z1-dev
-      - libedit-dev
-      - libdw-dev
-      - binutils-dev
-      - libiberty-dev      
-
+    - llvm-3.8-dev
+    - libelf-dev
+    - lib32z1-dev
+    - libedit-dev
+    - libdw-dev
+    - binutils-dev
+    - libiberty-dev
 install:
-  - command -v mdbook >/dev/null 2>&1 || cargo install mdbook
-  - command -v mdbook-linkcheck >/dev/null 2>&1 || cargo install mdbook-linkcheck
-
+- command -v mdbook >/dev/null 2>&1 || cargo install mdbook
+- command -v mdbook-linkcheck >/dev/null 2>&1 || cargo install mdbook-linkcheck
 script:
-  - cargo build --verbose
-  - cargo test --verbose
-
+- cargo build --verbose
+- cargo test --verbose
 before_deploy:
-  - cargo doc
-  - mdbook build book
-  - mkdir public
-  - cp -r target/doc public/
-  - cp -r target/book public/
-  - pwd
-  - ls
-  - echo "<meta http-equiv=refresh content=0;url=book/html/index.html>" > public/index.html
-
+- cargo doc
+- mdbook build book
+- mkdir public
+- cp -r target/doc public/
+- cp -r target/book public/
+- pwd
+- ls
+- echo "<meta http-equiv=refresh content=0;url=book/html/index.html>" > public/index.html
 deploy:
   provider: pages
   skip-cleanup: true
-  github-token: $GITHUB_TOKEN  
-  keep-history: false  
+  github-token: "$GITHUB_TOKEN"
+  keep-history: false
   local-dir: public
   on:
     branch: master
+env:
+  global:
+    secure: hZa4Xas5b5XnZ6PjwFgm4inTrSU+t5jk1sp3U/4Wsf//RZmf7khWIelAm4v+eY1Z27C+2ba2WDc44YqzEu39MDwQNj4xliwSjIvUYHkSNCj9wA9SxswPHWpXGnKn0DXLI2irjXDtrRj/FSJoeYTJFUn+7IP++XxuLuZg5R+HbqZt1mtx/iphe5SayNJVgbc6oXpgHu4DQdvVHtrLupB8A61hWykOso7Ixig4gvuIzN08/24HhNK3T7JHHDIzF6ttY99VmZtdJZBfpnxVqW//d+LWX2SfOIP35PVCL0nDj4v5kOnLadI/1NHQUxHcVtQiXcvEmG57H1A20UWYskA+R9ySY5mCuskw67IcYu4+DPpqshyhi/7Qys0WIXTVyC1UCnq5QAUTJrHi7Qc3FHN4vCBKkZ6ICiE68xtl8ljSf5qWQGkjDYLFJPlg0g723FZ+GL6EOCCgmb58lBk0K2m3XP4eja0WOBwe9uLj37UgdNJ60dafZ7eoc8T5hIH884JNuoNstZ23rvZSijhx31GIhw2UCZwoglB3UgzyQiKuownDjDw4FaDezVVV4YC5FrGvQZ9tf3tuejjw510MJUmeVhfrWf+6zZBcE4r0J+B0ozjN5j/OeOSzJ9QsLkg9giZdEKpYP361Ba3XmxE/gf6RLqee5BU743Dd1v2Tdi8URz4=
