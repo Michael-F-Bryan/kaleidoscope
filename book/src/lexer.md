@@ -42,7 +42,7 @@ use regex::Regex;
 
 pub struct Lexer<'input, Token: 'input> {
     src: &'input str,
-    patterns: Vec<(Regex, Box<Fn(&str) -> Result<Token, Error>>)>,
+    patterns: Vec<(Regex, Box<Fn(&'input str) -> Result<Token, Error>>)>,
     skips: Regex,
     ix: usize,
 }
@@ -77,7 +77,7 @@ impl<'input, Token: 'input> Lexer<'input, Token> {
     /// into its corresponding `Token`.
     pub fn register_pattern<F>(&mut self, pattern: &str, constructor: F)
     where
-        F: Fn(&str) -> Result<Token, Error> + 'static,
+        F: Fn(&'input str) -> Result<Token, Error> + 'static,
     {
         assert!(
             pattern.starts_with("^"),
@@ -176,3 +176,46 @@ doing is:
 
 Again, you shouldn't need to write out any of this in the future. Hopefully 
 it'll be built into `lalrpop`.
+
+## Using The Lexer
+
+Now we've got a `Lexer` we can define the various tokens Kaleidoscope will have.
+This is just a simple `enum`.
+
+```rust
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Token<'input> {
+    Identifier(&'input str),
+    Def,
+}
+```
+
+We also need a function which can construct a `Lexer` and configure it so it 
+knows how to skip comments (Kaleidoscope uses `#` like most scripting languages)
+and can generate our `Token`s.
+
+```rust
+pub fn construct_lexer(src: &str) -> Lexer<Token> {
+    let mut lexer = Lexer::new(src).skipping(r"^\s+|#.*$");
+
+    // keywords
+    lexer.register_pattern(r"^def", |_| Ok(Token::Def));
+    lexer.register_pattern(r"^extern", |_| Ok(Token::Extern));
+
+    // literals
+    lexer.register_pattern(r"^\d+\.\d+", |s| {
+        Ok(Token::Number(s.parse().expect("always valid")))
+    });
+    lexer.register_pattern(r"^\d+", |s| {
+        Ok(Token::Number(s.parse().expect("always valid")))
+    });
+
+    // identifiers
+    lexer.register_pattern(r"^[\w][\w\d_]*", |s| Ok(Token::Identifier(s)));
+
+    lexer
+}
+```
+
+And... We're done. That's all we need to do before `lalrpop` can use our 
+`Lexer`.

@@ -11,7 +11,7 @@ pub struct LexError {
 /// A generic table-based lexer.
 pub struct Lexer<'input, Token: 'input> {
     src: &'input str,
-    patterns: Vec<(Regex, Box<Fn(&str) -> Result<Token, Error>>)>,
+    patterns: Vec<(Regex, Box<Fn(&'input str) -> Result<Token, Error>>)>,
     skips: Regex,
     ix: usize,
 }
@@ -30,9 +30,22 @@ impl<'input, Token: 'input> Lexer<'input, Token> {
 
     /// Register a token pattern and a function for turning the matched text
     /// into its corresponding `Token`.
+    ///
+    /// # Note
+    ///
+    /// The order in which you register patterns **is important**. Patterns
+    /// registered earlier will take precedence over later patterns.
+    ///
+    /// # Panics
+    ///
+    /// All patterns must begin with a `^` to ensure they match the start of a
+    /// string.
+    ///
+    /// This function will also `panic!()` if an invalid regex pattern is passed
+    /// in.
     pub fn register_pattern<F>(&mut self, pattern: &str, constructor: F)
     where
-        F: Fn(&str) -> Result<Token, Error> + 'static,
+        F: Fn(&'input str) -> Result<Token, Error> + 'static,
     {
         assert!(
             pattern.starts_with("^"),
