@@ -1,0 +1,6 @@
+[package]
+name = "kaleidoscope"
+version = "0.1.0"
+authors = ["Michael Bryan <michaelfbryan@gmail.com>"]
+
+[dependencies]

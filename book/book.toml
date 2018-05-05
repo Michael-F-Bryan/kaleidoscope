@@ -1,0 +1,11 @@
+[book]
+authors = ["Michael Bryan"]
+src = "src"
+title = "Rust Kaleidoscope"
+
+[output.html]
+
+[output.linkcheck]
+
+[build]
+build-dir = "../target/book"
