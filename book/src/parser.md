@@ -283,6 +283,9 @@ extern {
 > lexer_test!(recognise_open_paren, "(" => Token::OpenParen);
 > lexer_test!(recognise_close_paren, ")" => Token::CloseParen);
 > ```
+>
+> Hint: you may want to look at how we registered the `def` and `extern` 
+> keywords.
 
 The above tells `lalrpop` what type we're using for the `Location` 
 (`codespan::ByteIndex`) as well as how to report errors (the `type Error` line).
