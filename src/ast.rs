@@ -8,6 +8,12 @@ pub struct File {
     pub span: Span,
 }
 
+impl File {
+    pub fn new(items: Vec<Item>, span: Span) -> File {
+        File { items, span }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Item {
     Extern(FunctionDecl),
@@ -19,6 +25,12 @@ pub struct FunctionDecl {
     pub ident: Ident,
     pub args: Vec<Ident>,
     pub span: Span,
+}
+
+impl FunctionDecl {
+    pub fn new(ident: Ident, args: Vec<Ident>, span: Span) -> FunctionDecl {
+        FunctionDecl { ident, args, span }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -41,6 +53,14 @@ pub struct Ident {
     pub span: Span,
 }
 
+impl Ident {
+    pub fn new<S: Into<String>>(name: S, span: Span) -> Ident {
+        Ident {
+            name: name.into(),
+            span,
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Literal {
@@ -53,4 +73,26 @@ pub struct FunctionCall {
     pub ident: Ident,
     pub args: Vec<Ident>,
     pub span: Span,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use grammar::ItemParser;
+    use tokens;
+
+    #[test]
+    fn parse_an_extern() {
+        let src = "extern foo()";
+        let lexer = tokens::construct_lexer(src);
+        let should_be = Item::Extern(FunctionDecl::new(
+            Ident::new("foo", Span::new(ByteIndex(7), ByteIndex(10))),
+            Vec::new(),
+            Span::new(ByteIndex(0), ByteIndex(src.len() as u32)),
+        ));
+
+        let got = ItemParser::new().parse(lexer).unwrap();
+
+        assert_eq!(got, should_be);
+    }
 }

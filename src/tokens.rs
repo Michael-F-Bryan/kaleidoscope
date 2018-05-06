@@ -1,4 +1,5 @@
-use lalrpop_util::Lexer;
+use codespan::ByteIndex;
+use lalrpop_util::{Lexer, ParseError};
 use void::Void;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -7,10 +8,28 @@ pub enum Token<'input> {
     Number(f64),
     Def,
     Extern,
+    OpenParen,
+    CloseParen,
 }
 
-pub fn construct_lexer(src: &str) -> Lexer<Token, Void> {
+impl<'input> Token<'input> {
+    pub fn as_ident(&self) -> Option<&'input str> {
+        match *self {
+            Token::Identifier(id) => Some(id),
+            _ => None,
+        }
+    }
+}
+
+pub type Spanned<'input> =
+    Result<(ByteIndex, Token<'input>, ByteIndex), ParseError<ByteIndex, Token<'input>, Void>>;
+
+pub fn construct_lexer(src: &str) -> impl Iterator<Item = Spanned> {
     let mut lexer = Lexer::new(src).skipping(r"^\s+|#.*$");
+
+    // punctuation
+    lexer.register_pattern(r"^\(", |_| Ok(Token::OpenParen));
+    lexer.register_pattern(r"^\)", |_| Ok(Token::CloseParen));
 
     // keywords
     lexer.register_pattern(r"^def", |_| Ok(Token::Def));
@@ -24,7 +43,10 @@ pub fn construct_lexer(src: &str) -> Lexer<Token, Void> {
     // identifiers
     lexer.register_pattern(r"^[\w][\w\d_]*", |s| Ok(Token::Identifier(s)));
 
-    lexer
+    lexer.map(|sp| {
+        sp.map(|(l, tok, r)| (ByteIndex(l as u32), tok, ByteIndex(r as u32)))
+            .map_err(|e| e.map_location(|loc| ByteIndex(loc as u32)))
+    })
 }
 
 impl<'a> From<i32> for Token<'a> {
@@ -71,4 +93,6 @@ mod tests {
     lexer_test!(recognise_an_ident, "foo" => "foo");
     lexer_test!(recognise_def, "def" => Token::Def);
     lexer_test!(recognise_extern, "extern" => Token::Extern);
+    lexer_test!(recognise_open_paren, "(" => Token::OpenParen);
+    lexer_test!(recognise_close_paren, ")" => Token::CloseParen);
 }

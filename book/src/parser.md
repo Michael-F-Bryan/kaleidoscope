@@ -191,6 +191,15 @@ $ cat Cargo.toml
 lalrpop = "0.15.2"
 ```
 
+Now the build system is set up we can finally get to work on our grammar file.
+
+> *Note:** If you aren't already familiar with `lalrpop` I highly suggest you
+> read through [the lalrpop guide][guide]. The guide explains how lalrpop works
+> in more detail and walks you through writing grammar files.
+
+Lalrpop uses a DSL to tell the parser generator how to parse our Kaleidoscope
+code and how to generate an AST from the parse results.
+
 [ast]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
 [grammar]: https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars
 [bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
@@ -198,3 +207,4 @@ lalrpop = "0.15.2"
 [build-dep]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#build-dependencies
 [codespan]: https://github.com/brendanzab/codespan
 [reporting]: https://github.com/brendanzab/codespan/tree/master/codespan-reporting
+[guide]: http://lalrpop.github.io/lalrpop/README.html

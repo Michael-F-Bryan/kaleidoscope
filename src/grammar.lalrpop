@@ -1,0 +1,36 @@
+use ast::{File, Item, Span, Ident, FunctionDecl};
+use tokens::Token;
+use codespan::ByteIndex;
+use lalrpop_util::ParseError;
+use void::Void;
+
+grammar<'input>;
+
+pub File: File = {
+    <l:@L> <items:Item*> <r:@R> => File::new(items, Span::new(l, r)),
+};
+
+pub Item: Item = {
+    <Extern> => Item::Extern(<>),
+};
+
+Extern: FunctionDecl = {
+    <l:@L> "extern" <name:Ident> "(" ")" <r:@R> => FunctionDecl::new(name, Vec::new(), Span::new(l, r)),
+};
+
+Ident: Ident = {
+    <l:@L> <id:"ident"> <r:@R> => Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
+};
+
+
+extern {
+    type Location = ByteIndex;
+    type Error = ParseError<ByteIndex, Token<'input>, Void>;
+
+    enum Token<'input> {
+        "ident" => Token::Identifier(_),
+        "extern" => Token::Extern,
+        "(" => Token::OpenParen,
+        ")" => Token::CloseParen,
+    }
+}

@@ -4,4 +4,5 @@ extern crate lalrpop_util;
 extern crate void;
 
 pub mod ast;
+mod grammar;
 pub mod tokens;
