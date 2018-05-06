@@ -85,11 +85,14 @@ mod tests {
     fn parse_an_extern() {
         let src = "extern foo()";
         let lexer = tokens::construct_lexer(src);
-        let should_be = Item::Extern(FunctionDecl::new(
-            Ident::new("foo", Span::new(ByteIndex(7), ByteIndex(10))),
-            Vec::new(),
-            Span::new(ByteIndex(0), ByteIndex(src.len() as u32)),
-        ));
+        let should_be = Item::Extern(FunctionDecl {
+            ident: Ident {
+                name: "foo".to_string(), 
+                span: Span::new(ByteIndex(7), ByteIndex(10)),
+            },
+            args: Vec::new(),
+            span: Span::new(ByteIndex(0), ByteIndex(src.len() as u32)),
+        });
 
         let got = ItemParser::new().parse(lexer).unwrap();
 

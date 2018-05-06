@@ -21,8 +21,8 @@ impl<'input> Token<'input> {
     }
 }
 
-pub type Spanned<'input> =
-    Result<(ByteIndex, Token<'input>, ByteIndex), ParseError<ByteIndex, Token<'input>, Void>>;
+pub type Error<'input> = ParseError<ByteIndex, Token<'input>, Void>;
+pub type Spanned<'input> = Result<(ByteIndex, Token<'input>, ByteIndex), Error<'input>>;
 
 pub fn construct_lexer(src: &str) -> impl Iterator<Item = Spanned> {
     let mut lexer = Lexer::new(src).skipping(r"^\s+|#.*$");

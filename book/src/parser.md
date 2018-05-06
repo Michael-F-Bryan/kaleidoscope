@@ -200,6 +200,138 @@ Now the build system is set up we can finally get to work on our grammar file.
 Lalrpop uses a DSL to tell the parser generator how to parse our Kaleidoscope
 code and how to generate an AST from the parse results.
 
+A grammar file is broken up into roughly two parts. At the start you can add
+arbitrary Rust code which will be copied to the top of the generated document,
+this is typically used to import the necessary types and functions. A special
+`grammar;` line separates the Rust preable from the rest of the grammar file,
+this is where the various grammar rules will go.
+
+Our top-most rule is the `File`. This will generate a `FileParser` which should
+(hopefully) result in an `ast::File` struct.
+
+```rust
+// src/grammar.lalrpop
+
+grammar<'input>;
+
+pub File: File = {
+    <l:@L> <items:Item*> <r:@R> => File::new(items, Span::new(l, r)),
+};
+```
+
+The syntax is kinda similar to a Rust `match` statement or `macro_rules` 
+definition. On the left is a bunch of patterns and variable bindings, then 
+there's a `=>` followed by the Rust code to be run. 
+
+The above rule says we want to bind the match's start position (`@L`) to the `l`
+variable, followed by zero or more `Item`s (bound to `items`), then we'll 
+bind the end position (`@R`) to `r`. When the generated parser encounters 
+something which matches that pattern, it'll execute the `File::new()` function
+and pass in the appropriate information.
+
+This notation will probably be a little confusing if you've never used `lalrpop`
+before. If so, you should probably pause here and read their [guide].
+
+> **Note:** Don't forget to add the trailing `;` at the end of a rule's closing
+> curly bracket. This has tripped me up more times than I'd like to admit.
+
+We want to start seeing results fairly quickly, so I'm going to write the code
+for parsing just an `extern` statement first, then come back and fill out the 
+rest of the grammar afterwards.
+
+These are all the rules we'll need to parse a simple `extern foo()` line:
+
+```rust
+pub Item: Item = {
+    <Extern> => Item::Extern(<>),
+};
+
+Extern: FunctionDecl = {
+    <l:@L> "extern" <name:Ident> "(" ")" <r:@R> => FunctionDecl::new(name, Vec::new(), Span::new(l, r)),
+};
+
+Ident: Ident = {
+    <l:@L> <id:"ident"> <r:@R> => Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
+};
+```
+
+And because we're using a custom lexer we need to tell `lalrpop` how to use it.
+This is done in a special `extern` block which I usually put at the bottom of
+the file.
+
+```rust
+extern {
+    type Location = ByteIndex;
+    type Error = ParseError<ByteIndex, Token<'input>, Void>;
+
+    enum Token<'input> {
+        "ident" => Token::Identifier(_),
+        "extern" => Token::Extern,
+        "(" => Token::OpenParen,
+        ")" => Token::CloseParen,
+    }
+}
+```
+
+> **Exercise for the Reader:** In the above snippet you might notice we've added
+> two extra variants to the `Token` enum, `Token::OpenParen` and 
+> `Token::CloseParen`. Try tweaking our `construct_lexer()` function until the
+> following tests pass.
+>
+> ```rust
+> // src/tokens.rs
+> lexer_test!(recognise_open_paren, "(" => Token::OpenParen);
+> lexer_test!(recognise_close_paren, ")" => Token::CloseParen);
+> ```
+
+The above tells `lalrpop` what type we're using for the `Location` 
+(`codespan::ByteIndex`) as well as how to report errors (the `type Error` line).
+We also need to tell it how to interpret the `Token`s returned by the lexer, so
+there's an `enum Token<'input>` line as well.
+
+This should be enough to make the following test pass!
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use grammar::ItemParser;
+    use tokens;
+
+    #[test]
+    fn parse_an_extern() {
+        let src = "extern foo()";
+        let lexer = tokens::construct_lexer(src);
+
+        let should_be = Item::Extern(FunctionDecl {
+            ident: Ident {
+                name: "foo".to_string(), 
+                span: Span::new(ByteIndex(7), ByteIndex(10)),
+            },
+            args: Vec::new(),
+            span: Span::new(ByteIndex(0), ByteIndex(src.len() as u32)),
+        });
+
+        let got = ItemParser::new().parse(lexer).unwrap();
+
+        assert_eq!(got, should_be);
+    }
+}
+```
+
+If you've got this far then congratulations. You can officially tokenize and 
+parse some Kaleidoscope code! 
+
+From here on the process of adding more complex language constructs (e.g. 
+function definitions, expressions) to the parser is actually quite mechanical.
+You:
+
+1. Add a test which takes a string of text and write out the type you expect it
+   to parse into.
+2. Throw the text at the corresponding `*Parser` type
+3. Add a rule matching the language construct to your grammar file
+4. Repeat steps 2 and 3 until the test passes
+
 [ast]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
 [grammar]: https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars
 [bnf]: https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
