@@ -1,0 +1,961 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Rust Kaleidoscope</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="_FontAwesome/css/font-awesome.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+
+    </head>
+    <body class="light">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = 'light'; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li class="affix"><a href="index.html">Overview</a></li><li class="spacer"></li><li><a href="lexer.html"><strong aria-hidden="true">1.</strong> The Lexer</a></li><li><a href="parser.html"><strong aria-hidden="true">2.</strong> Parser and AST</a></li><li><a href="codegen.html"><strong aria-hidden="true">3.</strong> Code Generation to LLVM IR</a></li><li><a href="jit.html"><strong aria-hidden="true">4.</strong> Adding JIT and Optimizer Support</a></li><li><a href="control_flow.html"><strong aria-hidden="true">5.</strong> Extending the Language: Control Flow</a></li><li><a href="user_defined_ops.html"><strong aria-hidden="true">6.</strong> Extending the Language: User-defined Operators</a></li><li><a href="mutable_variables.html"><strong aria-hidden="true">7.</strong> Extending the Language: Mutable Variables</a></li><li><a href="object_code.html"><strong aria-hidden="true">8.</strong> Compiling to Object Code</a></li><li><a href="debug_info.html"><strong aria-hidden="true">9.</strong> Adding Debug Information</a></li><li class="spacer"></li><li class="affix"><a href="tidbits.html">Conclusion and other useful LLVM tidbits</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Rust Kaleidoscope</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="print.html#overview" id="overview"><h1>Overview</h1></a>
+<p>This is yet another implementation of the <a href="https://llvm.org/docs/tutorial/index.html">LLVM Kaleidoscope tutorial</a>,
+written in Rust.</p>
+<p>In this tutorial we'll be using the <a href="https://github.com/TheDan64/inkwell">inkwell</a> crate to make using the LLVM
+bindings a little easier. Seeing as this guide is more focused on the compiler
+backend and code generation, we'll be using <a href="https://github.com/lalrpop/lalrpop">lalrpop</a> to parse our source code.</p>
+<p>This guide will be structured similarly to the original Kaleidoscope tutorial,
+with a chapter devoted to each step in the process.</p>
+<a class="header" href="print.html#the-kaleidoscope-language" id="the-kaleidoscope-language"><h2>The Kaleidoscope Language</h2></a>
+<p>(from <a href="https://llvm.org/docs/tutorial/LangImpl01.html#id2">the original tutorial</a>)</p>
+<p>Kaleidoscope is a procedural language that allows you to define functions,
+use conditionals, math, etc. Over the course of the tutorial, we’ll extend
+Kaleidoscope to support the if/then/else construct, a for loop, user defined
+operators, JIT compilation with a simple command line interface, etc.</p>
+<p>Because we want to keep things simple, the only datatype in Kaleidoscope is a
+64-bit floating point type (aka ‘double’ in C parlance). As such, all values
+are implicitly double precision and the language doesn’t require type
+declarations. This gives the language a very nice and simple syntax.</p>
+<pre><code># Compute the x'th fibonacci number.
+def fib(x)
+  if x &lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2)
+
+# This expression will compute the 40th number.
+fib(40)
+</code></pre>
+<p>We also allow Kaleidoscope to call into standard library functions. This
+means that you can use the ‘extern’ keyword to define a function before you
+use it (this is also useful for mutually recursive functions).</p>
+<pre><code>extern sin(arg);
+extern cos(arg);
+extern atan2(arg1 arg2);
+
+atan2(sin(.4), cos(42))
+</code></pre>
+<a class="header" href="print.html#expectations-of-the-reader" id="expectations-of-the-reader"><h2>Expectations of the Reader</h2></a>
+<p>This guide makes a couple assumptions so as to avoid re-teaching the entire Rust
+programming language. As such, you'll want to be familiar with things like
+<code>cargo</code>, generics, structs, enums, and traits.</p>
+<p>We try to avoid doing tricky things with lifetimes, mainly because they can add
+unnecessary complexity to code and bending over backwards to skip a copy is
+often premature optimization. That said, it's logical for the <code>Token</code> type in
+our first chapter (lexical analysis) to borrow from the source code instead
+of creating loads of intermediate strings. Tokens are quite small, short
+lived objects so it can be beneficial for them to borrow from the original
+source code.</p>
+<p>Think of this document as a general guide to creating a compiler with LLVM
+and not a step-by-step recipe where everything is spelled out in excruciating
+detail. So we'll occasionally elide bits and pieces for brevity (simple
+constructors, <code>From</code> impls, etc), leaving them as an exercise for the reader.</p>
+<a class="header" href="print.html#contributing" id="contributing"><h2>Contributing</h2></a>
+<p>If there are any concepts or steps which you feel could do with extra
+explanation or links to background material, feel free to create an issue on the
+repository's <a href="https://github.com/Michael-F-Bryan/kaleidoscope/issues">issue tracker</a> or send in a PR.</p>
+<p>Any help with proofreading or chapter writing is also most welcome.</p>
+<a class="header" href="print.html#the-lexer" id="the-lexer"><h1>The Lexer</h1></a>
+<p>The first step in creating a Kaleidoscope compiler is to turn the raw source
+code into a stream of tokens to make the parsing process easier.</p>
+<p>This will be done using a simple regex-based lexer. The idea is you'll register
+several patterns and &quot;Token Constructor&quot; functions then the lexer will try to
+match each pattern in turn, using the token constructor to turn a successful
+match into a <code>Token</code>.</p>
+<p>I originally wrote out the process of creating the lexer in an earlier version
+of this guide but felt it was useful enough to be a part of <code>lalrpop</code> itself.</p>
+<p>To use this lexer you'll need to add <code>lalrpop-util</code> to your <code>Cargo.toml</code> file.</p>
+<pre><code class="language-toml">[dependencies]
+lalrpop-util = { git = &quot;https://github.com/Michael-F-Bryan/lalrpop&quot;, 
+                 features = [&quot;lexer&quot;], 
+                 branch = &quot;custom-lexer&quot; }
+</code></pre>
+<blockquote>
+<p><strong>TODO:</strong> Update to use the official crate instead of the <code>custom-lexer</code>
+branch when <a href="https://github.com/lalrpop/lalrpop/pull/373">lalrpop#373</a> is merged.</p>
+</blockquote>
+<a class="header" href="print.html#using-the-lexer" id="using-the-lexer"><h2>Using The Lexer</h2></a>
+<p>We start the lexing process (also called <em>tokenizing</em>) by declaring a <code>Token</code>
+type to represent each token in the Kaleidoscope language.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Token&lt;'input&gt; {
+    Identifier(&amp;'input str),
+    Def,
+}
+#}</code></pre></pre>
+<p>We also need a function which can construct a <code>Lexer</code> and configure it so it
+knows how to skip comments (Kaleidoscope uses <code>#</code> line comments like most
+scripting languages) and teach it how to generate <code>Token</code>s.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn construct_lexer(src: &amp;str) -&gt; Lexer&lt;Token&gt; {
+    let mut lexer = Lexer::new(src).skipping(r&quot;^\s+|#.*$&quot;);
+
+    // keywords
+    lexer.register_pattern(r&quot;^def&quot;, |_| Ok(Token::Def));
+    lexer.register_pattern(r&quot;^extern&quot;, |_| Ok(Token::Extern));
+
+    // literals
+    lexer.register_pattern(r&quot;^\d+(\.\d+)?&quot;, |s| {
+        Ok(Token::Number(s.parse().expect(&quot;parse never fails&quot;)))
+    });
+
+    // identifiers
+    lexer.register_pattern(r&quot;^[\w][\w\d_]*&quot;, |s| Ok(Token::Identifier(s)));
+
+    lexer
+}
+#}</code></pre></pre>
+<p>And... We're done. That's everything we need to do so <code>lalrpop</code> can parse our
+language using a custom tokenizer.</p>
+<a class="header" href="print.html#testing-the-lexer" id="testing-the-lexer"><h2>Testing The Lexer</h2></a>
+<p>As a sanity check, lets add some tests to make sure we can tokenize things
+correctly. These tests are fairly simple, you construct an input string, run it
+through the lexer, then make sure it returns <em>exactly</em> what you expect.</p>
+<p>For example, here's a simple test which makes sure we can recognise a basic
+integer and convert it to a 64-bit floating point number.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recognise_a_number() {
+        let src = &quot;123&quot;;
+        let should_be = Token::Number(123.0);
+
+        let (_start, got, _end) = construct_lexer(src).next().unwrap().unwrap();
+
+        assert_eq!(got, should_be);
+    }
+}
+#}</code></pre></pre>
+<p>This works pretty well, although ideally we'd have to write (at least) one test
+per token type, which requires a lot of copy-pasta. It'd be much nicer to use
+a macro for generating all the boilerplate associated with these tests.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+macro_rules! lexer_test {
+    ($name:ident, $src:expr =&gt; $should_be:expr) =&gt; {
+        #[test]
+        fn $name() {
+            let src = $src;
+            let should_be = Token::from($should_be);
+
+            let (_, got, _) = construct_lexer(src).next()
+                .expect(&quot;Unexpected EOF&quot;)
+                .expect(&quot;Unexpected error&quot;);
+
+            assert_eq!(got, should_be);
+        } 
+    };
+}
+#}</code></pre></pre>
+<p>While we're at it, we'll add a couple <code>From</code> implementations to make
+constructing a <code>Token</code> easier in our tests (notice the <code>Token::from(...)</code> in the
+macro).</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl&lt;'a&gt; From&lt;i32&gt; for Token&lt;'a&gt; {
+    fn from(other: i32) -&gt; Token&lt;'a&gt; {
+        Token::Number(other as f64)
+    }
+}
+
+impl&lt;'a&gt; From&lt;f64&gt; for Token&lt;'a&gt; {
+    fn from(other: f64) -&gt; Token&lt;'a&gt; {
+        Token::Number(other)
+    }
+}
+
+impl&lt;'a&gt; From&lt;&amp;'a str&gt; for Token&lt;'a&gt; {
+    fn from(other: &amp;'a str) -&gt; Token&lt;'a&gt; {
+        Token::Identifier(other)
+    }
+}
+#}</code></pre></pre>
+<p>Now we've set things up so adding new lexer tests is almost trivial.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+lexer_test!(recognise_an_integer, &quot;123&quot; =&gt; 123);
+lexer_test!(recognise_a_decimal, &quot;3.1415&quot; =&gt; 3.1415);
+lexer_test!(recognise_an_ident, &quot;foo&quot; =&gt; &quot;foo&quot;);
+lexer_test!(recognise_def, &quot;def&quot; =&gt; Token::Def);
+lexer_test!(recognise_extern, &quot;extern&quot; =&gt; Token::Extern);
+#}</code></pre></pre>
+<a class="header" href="print.html#parser-and-ast" id="parser-and-ast"><h1>Parser and AST</h1></a>
+<p>The next step in our quest to create a Kaleidoscope compiler is parse a stream
+of tokens into a more computer-friendly form, an <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree"><em>Abstract Syntax Tree</em></a>.
+An abstract syntax tree (AST) is a tree data structure with node types for each
+construct in the Kaleidoscope language.</p>
+<a class="header" href="print.html#the-language-grammar" id="the-language-grammar"><h2>The Language Grammar</h2></a>
+<p>Before we can start writing a parser we'll need to formalize exactly what form
+we expect Kaleidoscope to take. This is often referred to as the language's
+<a href="https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars">grammar</a>.</p>
+<p>At the top level a file is composed of zero or more <em>items</em>, where an item can
+either be a function definition (<code>def foo() ...</code>) or an <code>extern</code> declaration.
+Or stated more concisely:</p>
+<pre><code class="language-text">file := item*
+item := function_def
+      | extern
+</code></pre>
+<p>An <code>extern</code> declaration is just the word &quot;<em>extern</em>&quot; followed by a function
+signature.</p>
+<pre><code class="language-text">extern       := &quot;extern&quot; function_sig
+function_sig := IDENT &quot;(&quot; IDENT* &quot;)&quot;
+</code></pre>
+<p>A function definition (our <code>function_def</code> rule) is just a function signature
+followed by an expression.</p>
+<pre><code class="language-text">function_def := &quot;def&quot; function_sig expr
+</code></pre>
+<p>For now an expression can be either a literal, a variable name, or a function
+call. Like most other languages, the arguments to a function call can themselves
+be expressions. We use the symbol &quot;<em>ε</em>&quot; (epsilon) to indicate the case when
+nothing is a valid pattern (i.e. there are no arguments).</p>
+<pre><code class="language-text">expr          := LITERAL
+               | IDENT
+               | function_call
+function_call := IDENT &quot;(&quot; args &quot;)&quot;
+args          := expr
+               | expr (&quot;,&quot; expr)*
+               | ε
+</code></pre>
+<p>The notation we've been using so far is similar to the more formal
+<a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form">Backus-Naur Form</a> used to describe programming language syntax. Upper-case
+names (e.g. <code>IDENT</code>) are used to refer to literal tokens (sometimes called
+<em>terminals</em>), with lower-case names signifying a particular rule/syntactic
+construct in the language (<em>non-terminal</em>) that may be itself composed of other
+rules or tokens.</p>
+<a class="header" href="print.html#the-abstract-syntax-tree" id="the-abstract-syntax-tree"><h2>The Abstract Syntax Tree</h2></a>
+<p>Now we are more familiar with the language we can start writing out the data
+types which will make up Kaleidoscope's AST. The code for this will be placed
+in the <code>src/ast.rs</code> module.</p>
+<p>This step is actually super easy, it's just a case of translating our grammar
+from the pseudo-BNF above into types. Whenever you see alternation (&quot;or&quot;) you
+use an <code>enum</code>, and each line corresponds to a <code>struct</code>.</p>
+<p>First up we have the definitions for a <code>File</code> and <code>Item</code>:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[derive(Debug, Clone, PartialEq)]
+pub struct File {
+    pub items: Vec&lt;Item&gt;,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Item {
+    Extern(FunctionDecl),
+    Function(Function),
+}
+#}</code></pre></pre>
+<p>In turn, these are made up from either a <code>Function</code> or a <code>FunctionDecl</code> (forward
+declaration).</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionDecl {
+    pub ident: Ident,
+    pub args: Vec&lt;Ident&gt;,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Function {
+    pub decl: FunctionDecl,
+    pub body: Expr,
+    pub span: Span,
+}
+#}</code></pre></pre>
+<p>And finally, we have the types which make up our <em>expressions</em>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Expr {
+    Ident(Ident),
+    Literal(Literal),
+    FunctionCall(FunctionCall),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Ident {
+    pub name: String,
+    pub span: Span,
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Literal {
+    pub value: f64,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionCall {
+    pub ident: Ident,
+    pub args: Vec&lt;Ident&gt;,
+    pub span: Span,
+}
+#}</code></pre></pre>
+<p>There's nothing worse than a program which says there's an error in your program
+but never bothers to tell you where, so we'll need to keep track of the location
+of each AST node in the original source text. This can be done by creating a
+custom <code>Span</code> struct and keeping track of the byte index, but we can avoid
+reinventing the wheel with the <a href="https://github.com/brendanzab/codespan">codespan</a> crate.</p>
+<p>Codespan gives us nice things like a <code>FileMap</code> and <code>CodeMap</code> abstraction, as
+well as a bunch of functionality for <a href="https://github.com/brendanzab/codespan/tree/master/codespan-reporting">generating diagnostics</a>.</p>
+<p>To start using the <code>codespan</code> crate, add it as a dependency then make sure to
+import it in <code>ast.rs</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+use codespan::{self, ByteIndex};
+
+pub type Span = codespan::Span&lt;ByteIndex&gt;;
+#}</code></pre></pre>
+<a class="header" href="print.html#translating-to-lalrpop" id="translating-to-lalrpop"><h2>Translating To Lalrpop</h2></a>
+<p>The reason we took the time to write down Kaleidoscope's grammar using formal
+notation is twofold. Having a formal spec for the language lets you definitively
+say whether a particular program is syntactically correct and also helps direct
+the development of the parser itself.</p>
+<p>The second reason is <code>lalrpop</code> will generate a parser based upon a <em>grammar file</em>
+which lets the parser generator know what patterns are valid and what to do when
+a valid pattern is encountered.</p>
+<p>Because <code>lalrpop</code> will generate the Rust code for parsing from our grammar file
+we need to execute a build step before compiling the main crate. This is done
+by writing a <a href="https://doc.rust-lang.org/cargo/reference/build-scripts.html">build script</a> that invokes <code>lalrpop</code>.</p>
+<pre><pre class="playpen"><code class="language-rust">// build.rs
+
+extern crate lalrpop;
+
+fn main() {
+    lalrpop::process_root().unwrap();
+}
+</code></pre></pre>
+<p>By simply invoking the <code>process_root()</code> function <code>lalrpop</code> will traverse our
+entire <code>src/</code> directory looking for any <code>*.lalrpop</code> files, and generate the
+corresponding Rust parser code.</p>
+<p>We also need to add <code>lalrpop</code> as a <a href="https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#build-dependencies"><em>build dependency</em></a>.</p>
+<pre><code class="language-console">$ cargo add --build lalrpop
+$ cat Cargo.toml
+...
+[build-dependencies]
+lalrpop = &quot;0.15.2&quot;
+</code></pre>
+<p>Now the build system is set up we can finally get to work on our grammar file.</p>
+<blockquote>
+<p><em>Note:</em>* If you aren't already familiar with <code>lalrpop</code> I highly suggest you
+read through <a href="http://lalrpop.github.io/lalrpop/README.html">the lalrpop guide</a>. The guide explains how lalrpop works
+in more detail and walks you through writing grammar files.</p>
+</blockquote>
+<p>Lalrpop uses a DSL to tell the parser generator how to parse our Kaleidoscope
+code and how to generate an AST from the parse results.</p>
+<p>A grammar file is broken up into roughly two parts. At the start you can add
+arbitrary Rust code which will be copied to the top of the generated document,
+this is typically used to import the necessary types and functions. A special
+<code>grammar;</code> line separates the Rust preable from the rest of the grammar file,
+this is where the various grammar rules will go.</p>
+<p>Our top-most rule is the <code>File</code>. This will generate a <code>FileParser</code> which should
+(hopefully) result in an <code>ast::File</code> struct.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// src/grammar.lalrpop
+
+grammar&lt;'input&gt;;
+
+pub File: File = {
+    &lt;l:@L&gt; &lt;items:Item*&gt; &lt;r:@R&gt; =&gt; File::new(items, Span::new(l, r)),
+};
+#}</code></pre></pre>
+<p>The syntax is kinda similar to a Rust <code>match</code> statement or <code>macro_rules</code>
+definition. On the left is a bunch of patterns and variable bindings, then
+there's a <code>=&gt;</code> followed by the Rust code to be run.</p>
+<p>The above rule says we want to bind the match's start position (<code>@L</code>) to the <code>l</code>
+variable, followed by zero or more <code>Item</code>s (bound to <code>items</code>), then we'll
+bind the end position (<code>@R</code>) to <code>r</code>. When the generated parser encounters
+something which matches that pattern, it'll execute the <code>File::new()</code> function
+and pass in the appropriate information.</p>
+<p>This notation will probably be a little confusing if you've never used <code>lalrpop</code>
+before. If so, you should probably pause here and read their <a href="http://lalrpop.github.io/lalrpop/README.html">guide</a>.</p>
+<blockquote>
+<p><strong>Note:</strong> Don't forget to add the trailing <code>;</code> at the end of a rule's closing
+curly bracket. This has tripped me up more times than I'd like to admit.</p>
+</blockquote>
+<p>We want to start seeing results fairly quickly, so I'm going to write the code
+for parsing just an <code>extern</code> statement first, then come back and fill out the
+rest of the grammar afterwards.</p>
+<p>These are all the rules we'll need to parse a simple <code>extern foo()</code> line:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub Item: Item = {
+    &lt;Extern&gt; =&gt; Item::Extern(&lt;&gt;),
+};
+
+Extern: FunctionDecl = {
+    &lt;l:@L&gt; &quot;extern&quot; &lt;name:Ident&gt; &quot;(&quot; &quot;)&quot; &lt;r:@R&gt; =&gt; FunctionDecl::new(name, Vec::new(), Span::new(l, r)),
+};
+
+Ident: Ident = {
+    &lt;l:@L&gt; &lt;id:&quot;ident&quot;&gt; &lt;r:@R&gt; =&gt; Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
+};
+#}</code></pre></pre>
+<p>And because we're using a custom lexer we need to tell <code>lalrpop</code> how to use it.
+This is done in a special <code>extern</code> block which I usually put at the bottom of
+the file.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+extern {
+    type Location = ByteIndex;
+    type Error = ParseError&lt;ByteIndex, Token&lt;'input&gt;, Void&gt;;
+
+    enum Token&lt;'input&gt; {
+        &quot;ident&quot; =&gt; Token::Identifier(_),
+        &quot;extern&quot; =&gt; Token::Extern,
+        &quot;(&quot; =&gt; Token::OpenParen,
+        &quot;)&quot; =&gt; Token::CloseParen,
+    }
+}
+#}</code></pre></pre>
+<blockquote>
+<p><strong>Exercise for the Reader:</strong> In the above snippet you might notice we've added
+two extra variants to the <code>Token</code> enum, <code>Token::OpenParen</code> and
+<code>Token::CloseParen</code>. Try tweaking our <code>construct_lexer()</code> function until the
+following tests pass.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// src/tokens.rs
+lexer_test!(recognise_open_paren, &quot;(&quot; =&gt; Token::OpenParen);
+lexer_test!(recognise_close_paren, &quot;)&quot; =&gt; Token::CloseParen);
+#}</code></pre></pre>
+<p>Hint: you may want to look at how we registered the <code>def</code> and <code>extern</code>
+keywords.</p>
+</blockquote>
+<p>The above tells <code>lalrpop</code> what type we're using for the <code>Location</code>
+(<code>codespan::ByteIndex</code>) as well as how to report errors (the <code>type Error</code> line).
+We also need to tell it how to interpret the <code>Token</code>s returned by the lexer, so
+there's an <code>enum Token&lt;'input&gt;</code> line as well.</p>
+<p>This should be enough to make the following test pass!</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use grammar::ItemParser;
+    use tokens;
+
+    #[test]
+    fn parse_an_extern() {
+        let src = &quot;extern foo()&quot;;
+        let lexer = tokens::construct_lexer(src);
+
+        let should_be = Item::Extern(FunctionDecl {
+            ident: Ident {
+                name: &quot;foo&quot;.to_string(), 
+                span: Span::new(ByteIndex(7), ByteIndex(10)),
+            },
+            args: Vec::new(),
+            span: Span::new(ByteIndex(0), ByteIndex(src.len() as u32)),
+        });
+
+        let got = ItemParser::new().parse(lexer).unwrap();
+
+        assert_eq!(got, should_be);
+    }
+}
+#}</code></pre></pre>
+<p>If you've got this far then congratulations. You can officially tokenize and
+parse some Kaleidoscope code!</p>
+<p>From here on the process of adding more complex language constructs (e.g.
+function definitions, expressions) to the parser is actually quite mechanical.
+You:</p>
+<ol>
+<li>Add a test which takes a string of text and write out the type you expect it
+to parse into.</li>
+<li>Throw the text at the corresponding <code>XXXParser</code> type</li>
+<li>Add a rule matching the language construct to your grammar file</li>
+<li>Repeat steps 2 and 3 until the test passes</li>
+</ol>
+<a class="header" href="print.html#parsing-the-rest" id="parsing-the-rest"><h2>Parsing The Rest</h2></a>
+<p>Now we've got a better understanding of how to use lalrpop to parse code, lets
+implement the rest of our grammar rules. You'll quickly realise that the code
+written in <code>grammar.lalrpop</code> very closely follows the rules we wrote down at the
+beginning of the chapter.</p>
+<p>We need to define the following constructs:</p>
+<ul>
+<li>Functions (i.e. function signature + body)</li>
+<li>Expressions (i.e. ident or literal or function call)
+<ul>
+<li>Function calls</li>
+</ul>
+</li>
+</ul>
+<p>We also need to add support for commas to our lexer, but hopefully this should
+be fairly routine for now. Just make sure the following test passes:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+lexer_test!(recognise_comma, &quot;,&quot; =&gt; Token::Comma);
+#}</code></pre></pre>
+<p>First off, as a sanity check lets add a couple tests for parsing identifiers and
+literals. This will make sure the <code>ExprParser</code> we're about to define (by adding
+an <code>Expr</code> rule to <code>grammar.lalrpop</code>) works as expected.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[test]
+fn parse_a_literal() {
+    let src = &quot;123&quot;;
+    let lexer = tokens::construct_lexer(src);
+
+    let should_be = Literal::new(123.0, Span::new(ByteIndex(0), ByteIndex(3)));
+    let should_be = Expr::Literal(should_be);
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+
+#[test]
+fn parse_an_ident() {
+    let src = &quot;foo&quot;;
+    let lexer = tokens::construct_lexer(src);
+
+    let should_be = Ident::new(&quot;foo&quot;, Span::new(ByteIndex(0), ByteIndex(3)));
+    let should_be = Expr::Ident(should_be);
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+#}</code></pre></pre>
+<p>Now we've got some tests to guide us, lets write the <code>Expr</code> rule.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+// src/grammar.lalrpop
+
+pub Expr: Expr = {
+    &lt;Ident&gt; =&gt; Expr::Ident(&lt;&gt;),
+    &lt;Literal&gt; =&gt; Expr::Literal(&lt;&gt;),
+};
+
+Literal: Literal = {
+    &lt;l:@L&gt; &lt;lit:&quot;literal&quot;&gt; &lt;r:@R&gt; =&gt; Literal::new(lit.as_number().unwrap(), Span::new(l, r)),
+};
+
+Ident: Ident = {
+    &lt;l:@L&gt; &lt;id:&quot;ident&quot;&gt; &lt;r:@R&gt; =&gt; Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
+};
+#}</code></pre></pre>
+<blockquote>
+<p><strong>Note:</strong> I've added a couple helper methods to make things easier. The
+<code>as_number()</code> method will return <code>Some(f64)</code> when a we get a <code>Token::Number</code>,
+and <code>None</code> otherwise. Likewise <code>as_ident()</code> will extract the <code>&amp;'input str</code>
+part from an identifier token.</p>
+<p>Lalrpop makes sure the <code>&quot;ident&quot;</code> pattern only matches a valid identifier
+token so we use <code>unwrap()</code> because we <em>know</em> the conversion will never fail
+(and if it does, this indicates a programming error so it should ideally
+blow up loudly).</p>
+</blockquote>
+<p>Next we want to parse a function call into an <code>Expr::FunctionCall</code>. The test
+itself is pretty mundane, although constructing the <em>exact</em> AST we expect to
+parse is starting to get rather verbose.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[test]
+fn parse_a_function_call() {
+    let src = &quot;foo(a, b, 123)&quot;;
+    let lexer = tokens::construct_lexer(src);
+
+    let name = Ident::new(&quot;foo&quot;, Span::new(ByteIndex(0), ByteIndex(3)));
+    let args = vec![
+        Expr::Ident(Ident::new(&quot;a&quot;, Span::new(ByteIndex(4), ByteIndex(5)))),
+        Expr::Ident(Ident::new(&quot;b&quot;, Span::new(ByteIndex(7), ByteIndex(8)))),
+        Expr::Literal(Literal::new(123.0, Span::new(ByteIndex(10), ByteIndex(13)))),
+    ];
+    let should_be = Expr::FunctionCall(FunctionCall::new(
+        name,
+        args,
+        Span::new(ByteIndex(0), ByteIndex(14)),
+    ));
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+#}</code></pre></pre>
+<p>Implementing the rule is quite trivial though. Don't forget to update the <code>Expr</code>
+rule appropriately!</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub Expr: Expr = {
+    &lt;Ident&gt; =&gt; Expr::Ident(&lt;&gt;),
+    &lt;Literal&gt; =&gt; Expr::Literal(&lt;&gt;),
+    &lt;FunctionCall&gt; =&gt; Expr::FunctionCall(&lt;&gt;),
+};
+
+FunctionCall: FunctionCall = {
+    &lt;l:@L&gt; &lt;name:Ident&gt; &quot;(&quot; &lt;args:Comma&lt;Expr&gt;&gt; &quot;)&quot; &lt;r:@R&gt; =&gt; FunctionCall::new(name, args, Span::new(l, r)),
+};
+
+Comma&lt;T&gt;: Vec&lt;T&gt; = { 
+    &lt;v:(&lt;T&gt; &quot;,&quot;)*&gt; &lt;e:T?&gt; =&gt; match e { 
+        None =&gt; v,
+        Some(e) =&gt; {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+#}</code></pre></pre>
+<p>You'll notice we included a &quot;macro&quot; (<code>Comma&lt;T&gt;</code>) for parsing any comma-separated
+<code>T</code>, where <code>T</code> can be any arbitrary rule. This is literally copy-pasted from
+the <em>Macros</em>&quot; chapter in the lalrpop book and lets us say &quot;<em>parse a
+comma-separated list of <code>Expr</code>essions and bind them to the <code>args</code> variable</em>&quot; in
+a very concise way.</p>
+<p>Last up is to parse a full function, which is made up of a <code>&quot;def&quot;</code>, the function
+signature, and a function body.</p>
+<p>Writing out the test for this one is a massive
+pain because of how nested the AST is getting. If you have a suggestion for
+making these tests easier to write, please let us know by making an <a href="https://github.com/Michael-F-Bryan/kaleidoscope/issues">issue</a> on
+GitHub!!</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[test]
+fn parse_a_full_function() {
+    let src = &quot;def foo(a b) add(5, 3.15)&quot;;
+    let lexer = tokens::construct_lexer(src);
+
+    let name = Ident::new(&quot;foo&quot;, Span::new(ByteIndex(4), ByteIndex(7)));
+    let args = vec![
+        Ident::new(&quot;a&quot;, Span::new(ByteIndex(8), ByteIndex(9))),
+        Ident::new(&quot;b&quot;, Span::new(ByteIndex(10), ByteIndex(11))),
+    ];
+    let decl = FunctionDecl::new(name, args, Span::new(ByteIndex(4), ByteIndex(12)));
+
+    let call_name = Ident::new(&quot;add&quot;, Span::new(ByteIndex(13), ByteIndex(16)));
+    let body_args = vec![
+        Expr::Literal(Literal::new(5.0, Span::new(ByteIndex(17), ByteIndex(18)))),
+        Expr::Literal(Literal::new(3.15, Span::new(ByteIndex(20), ByteIndex(24)))),
+    ];
+
+    let body = Expr::FunctionCall(FunctionCall::new(
+        call_name,
+        body_args,
+        Span::new(ByteIndex(13), ByteIndex(25)),
+    ));
+
+    let should_be = Item::Function(Function::new(
+        decl,
+        body,
+        Span::new(ByteIndex(0), ByteIndex(25)),
+    ));
+
+    let got = ItemParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+#}</code></pre></pre>
+<p>As I was writing the rules for parsing a function I took the time to do a little
+refactoring and extract the common code between <code>extern</code> and <code>def</code> (the function
+signature part) into its own <code>FunctionDecl</code> rule.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub Item: Item = {
+    &lt;Extern&gt; =&gt; Item::Extern(&lt;&gt;),
+    &lt;FunctionDef&gt; =&gt; Item::Function(&lt;&gt;),
+};
+
+FunctionDef: Function = {
+    &lt;l:@L&gt; &quot;def&quot; &lt;decl:FunctionDecl&gt; &lt;body:Expr&gt; &lt;r:@R&gt; =&gt; Function::new(decl, body, Span::new(l, r)),
+};
+
+Extern: FunctionDecl = {
+    &lt;l:@L&gt; &quot;extern&quot; &lt;decl:FunctionDecl&gt; &lt;r:@R&gt; =&gt; FunctionDecl { span: Span::new(l, r), ..decl },
+};
+
+FunctionDecl: FunctionDecl = {
+    &lt;l:@L&gt; &lt;name:Ident&gt; &quot;(&quot; &lt;args:Ident*&gt; &quot;)&quot; &lt;r:@R&gt; =&gt; FunctionDecl::new(name, args, Span::new(l, r)),
+};
+#}</code></pre></pre>
+<blockquote>
+<p><strong>Hint:</strong> When using tests to make sure the parser gives you <em>exactly</em> what
+you expect, it often takes a non-trivial amount of time to figure out what's
+different between the two parse trees you received. This is especially
+annoying when updating things like the <code>Span</code> indices.</p>
+<p>The <a href="https://github.com/colin-kiegel/rust-pretty-assertions">pretty_assertions</a> crate overrides the default <code>assert_eq!()</code> macro to
+show a full-colour diff, pointing out <em>exactly</em> what's wrong and how you can
+change it. You may find this useful for testing.</p>
+</blockquote>
+<a class="header" href="print.html#code-generation-to-llvm-ir" id="code-generation-to-llvm-ir"><h1>Code Generation to LLVM IR</h1></a>
+<p>Welcome to chapter 3, code generation. This is where things start getting
+interesting and we'll begin actually using LLVM!</p>
+<a class="header" href="print.html#how-llvm-works" id="how-llvm-works"><h2>How LLVM Works</h2></a>
+<p>First up you'll probably want to know how LLVM is structured. At the very top
+level is the <code>Context</code>, an object which contains the various global variables,
+interned/memoized objects (see <a href="https://en.wikipedia.org/wiki/String_interning">string interning</a>), and other things LLVM needs
+for the lifetime of your compiler. You use this to create the other various
+objects in LLVM and constrain their lifetimes.</p>
+<p>A <code>Module</code> can be thought of as a single object file (C/C++) or crate (Rust). It
+contains all the definitions for your functions and types and acts as a discrete
+chunk. You can create one via the <code>Context::create_module()</code> method.</p>
+<p>You can add functions to a <code>Module</code> via the <code>Module::add_function()</code> method.
+From there you'll populate the function's body using a <code>Builder</code>. This super
+handy class has loads of functions for creating and manipulating LLVM IR like
+<code>build_call()</code>, <code>build_float_to_signed_int()</code>, <code>build_conditional_branch()</code>, and
+more.</p>
+<p>A function is composed of multiple <code>BasicBlock</code>s. This is roughly a
+continuous sequence of instructions without any branching or jumps, with each
+basic block in a function having a unique name (think of labels in assembly).
+To add instructions to a basic block, you'll position the <code>Builder</code> at the end
+of the block then call its various <code>build_*()</code> methods.</p>
+<p>One thing to keep in mind is that all instructions, basic blocks, and functions
+are owned by their parent <code>Module</code>. Presumably LLVM uses some sort of arena or
+object pool. Although I haven't encountered any memory issues with the <code>inkwell</code>
+bindings so far, as a Rust programmer it's still useful to know who owns what
+memory and for how long.</p>
+<blockquote>
+<p><strong>Note:</strong> Although most of the above methods and type names are from the<br />
+<a href="https://github.com/TheDan64/inkwell">inkwell</a> crate (the LLVM binding library we'll use), although there's a
+fairly 1:1 relationship with the original C++ library.</p>
+</blockquote>
+<p>Obviously there's a lot more to LLVM than the summary above, but this should be
+enough to get us through the initial codegen step.</p>
+<a class="header" href="print.html#writing-the-compiler" id="writing-the-compiler"><h2>Writing The Compiler</h2></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this</p>
+</blockquote>
+<a class="header" href="print.html#adding-jit-and-optimizer-support" id="adding-jit-and-optimizer-support"><h1>Adding JIT and Optimizer Support</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#extending-the-language-control-flow" id="extending-the-language-control-flow"><h1>Extending the Language: Control Flow</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#extending-the-language-user-defined-operators" id="extending-the-language-user-defined-operators"><h1>Extending the Language: User-defined Operators</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#extending-the-language-mutable-variables" id="extending-the-language-mutable-variables"><h1>Extending the Language: Mutable Variables</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#compiling-to-object-code" id="compiling-to-object-code"><h1>Compiling to Object Code</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#adding-debug-information" id="adding-debug-information"><h1>Adding Debug Information</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+<a class="header" href="print.html#conclusion-and-other-useful-llvm-tidbits" id="conclusion-and-other-useful-llvm-tidbits"><h1>Conclusion and other useful LLVM tidbits</h1></a>
+<blockquote>
+<p><strong>TODO:</strong> Write this chapter</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                window.print();
+            })
+        </script>
+        
+
+        
+
+        
+        <script src="searchindex.js" type="text/javascript" charset="utf-8"></script>
+        
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+    </body>
+</html>

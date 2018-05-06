@@ -1,0 +1,247 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Overview - Rust Kaleidoscope</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="_FontAwesome/css/font-awesome.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+
+    </head>
+    <body class="light">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = 'light'; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li class="affix"><a href="index.html" class="active">Overview</a></li><li class="spacer"></li><li><a href="lexer.html"><strong aria-hidden="true">1.</strong> The Lexer</a></li><li><a href="parser.html"><strong aria-hidden="true">2.</strong> Parser and AST</a></li><li><a href="codegen.html"><strong aria-hidden="true">3.</strong> Code Generation to LLVM IR</a></li><li><a href="jit.html"><strong aria-hidden="true">4.</strong> Adding JIT and Optimizer Support</a></li><li><a href="control_flow.html"><strong aria-hidden="true">5.</strong> Extending the Language: Control Flow</a></li><li><a href="user_defined_ops.html"><strong aria-hidden="true">6.</strong> Extending the Language: User-defined Operators</a></li><li><a href="mutable_variables.html"><strong aria-hidden="true">7.</strong> Extending the Language: Mutable Variables</a></li><li><a href="object_code.html"><strong aria-hidden="true">8.</strong> Compiling to Object Code</a></li><li><a href="debug_info.html"><strong aria-hidden="true">9.</strong> Adding Debug Information</a></li><li class="spacer"></li><li class="affix"><a href="tidbits.html">Conclusion and other useful LLVM tidbits</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Rust Kaleidoscope</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="index.html#overview" id="overview"><h1>Overview</h1></a>
+<p>This is yet another implementation of the <a href="https://llvm.org/docs/tutorial/index.html">LLVM Kaleidoscope tutorial</a>,
+written in Rust.</p>
+<p>In this tutorial we'll be using the <a href="https://github.com/TheDan64/inkwell">inkwell</a> crate to make using the LLVM
+bindings a little easier. Seeing as this guide is more focused on the compiler
+backend and code generation, we'll be using <a href="https://github.com/lalrpop/lalrpop">lalrpop</a> to parse our source code.</p>
+<p>This guide will be structured similarly to the original Kaleidoscope tutorial,
+with a chapter devoted to each step in the process.</p>
+<a class="header" href="index.html#the-kaleidoscope-language" id="the-kaleidoscope-language"><h2>The Kaleidoscope Language</h2></a>
+<p>(from <a href="https://llvm.org/docs/tutorial/LangImpl01.html#id2">the original tutorial</a>)</p>
+<p>Kaleidoscope is a procedural language that allows you to define functions,
+use conditionals, math, etc. Over the course of the tutorial, we’ll extend
+Kaleidoscope to support the if/then/else construct, a for loop, user defined
+operators, JIT compilation with a simple command line interface, etc.</p>
+<p>Because we want to keep things simple, the only datatype in Kaleidoscope is a
+64-bit floating point type (aka ‘double’ in C parlance). As such, all values
+are implicitly double precision and the language doesn’t require type
+declarations. This gives the language a very nice and simple syntax.</p>
+<pre><code># Compute the x'th fibonacci number.
+def fib(x)
+  if x &lt; 3 then
+    1
+  else
+    fib(x-1)+fib(x-2)
+
+# This expression will compute the 40th number.
+fib(40)
+</code></pre>
+<p>We also allow Kaleidoscope to call into standard library functions. This
+means that you can use the ‘extern’ keyword to define a function before you
+use it (this is also useful for mutually recursive functions).</p>
+<pre><code>extern sin(arg);
+extern cos(arg);
+extern atan2(arg1 arg2);
+
+atan2(sin(.4), cos(42))
+</code></pre>
+<a class="header" href="index.html#expectations-of-the-reader" id="expectations-of-the-reader"><h2>Expectations of the Reader</h2></a>
+<p>This guide makes a couple assumptions so as to avoid re-teaching the entire Rust
+programming language. As such, you'll want to be familiar with things like
+<code>cargo</code>, generics, structs, enums, and traits.</p>
+<p>We try to avoid doing tricky things with lifetimes, mainly because they can add
+unnecessary complexity to code and bending over backwards to skip a copy is
+often premature optimization. That said, it's logical for the <code>Token</code> type in
+our first chapter (lexical analysis) to borrow from the source code instead
+of creating loads of intermediate strings. Tokens are quite small, short
+lived objects so it can be beneficial for them to borrow from the original
+source code.</p>
+<p>Think of this document as a general guide to creating a compiler with LLVM
+and not a step-by-step recipe where everything is spelled out in excruciating
+detail. So we'll occasionally elide bits and pieces for brevity (simple
+constructors, <code>From</code> impls, etc), leaving them as an exercise for the reader.</p>
+<a class="header" href="index.html#contributing" id="contributing"><h2>Contributing</h2></a>
+<p>If there are any concepts or steps which you feel could do with extra
+explanation or links to background material, feel free to create an issue on the
+repository's <a href="https://github.com/Michael-F-Bryan/kaleidoscope/issues">issue tracker</a> or send in a PR.</p>
+<p>Any help with proofreading or chapter writing is also most welcome.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+
+                        
+                            <a rel="next" href="lexer.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+
+                
+                    <a href="lexer.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <script src="searchindex.js" type="text/javascript" charset="utf-8"></script>
+        
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+    </body>
+</html>

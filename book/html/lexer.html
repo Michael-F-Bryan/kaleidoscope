@@ -1,0 +1,336 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>The Lexer - Rust Kaleidoscope</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <base href="">
+
+        <link rel="stylesheet" href="book.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="_FontAwesome/css/font-awesome.css">
+
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+
+    </head>
+    <body class="light">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { } 
+            if (theme === null || theme === undefined) { theme = 'light'; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <ol class="chapter"><li class="affix"><a href="index.html">Overview</a></li><li class="spacer"></li><li><a href="lexer.html" class="active"><strong aria-hidden="true">1.</strong> The Lexer</a></li><li><a href="parser.html"><strong aria-hidden="true">2.</strong> Parser and AST</a></li><li><a href="codegen.html"><strong aria-hidden="true">3.</strong> Code Generation to LLVM IR</a></li><li><a href="jit.html"><strong aria-hidden="true">4.</strong> Adding JIT and Optimizer Support</a></li><li><a href="control_flow.html"><strong aria-hidden="true">5.</strong> Extending the Language: Control Flow</a></li><li><a href="user_defined_ops.html"><strong aria-hidden="true">6.</strong> Extending the Language: User-defined Operators</a></li><li><a href="mutable_variables.html"><strong aria-hidden="true">7.</strong> Extending the Language: Mutable Variables</a></li><li><a href="object_code.html"><strong aria-hidden="true">8.</strong> Compiling to Object Code</a></li><li><a href="debug_info.html"><strong aria-hidden="true">9.</strong> Adding Debug Information</a></li><li class="spacer"></li><li class="affix"><a href="tidbits.html">Conclusion and other useful LLVM tidbits</a></li></ol>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light <span class="default">(default)</span></button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">Rust Kaleidoscope</h1> 
+
+                        <div class="right-buttons">
+                            <a href="print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <a class="header" href="lexer.html#the-lexer" id="the-lexer"><h1>The Lexer</h1></a>
+<p>The first step in creating a Kaleidoscope compiler is to turn the raw source
+code into a stream of tokens to make the parsing process easier.</p>
+<p>This will be done using a simple regex-based lexer. The idea is you'll register
+several patterns and &quot;Token Constructor&quot; functions then the lexer will try to
+match each pattern in turn, using the token constructor to turn a successful
+match into a <code>Token</code>.</p>
+<p>I originally wrote out the process of creating the lexer in an earlier version
+of this guide but felt it was useful enough to be a part of <code>lalrpop</code> itself.</p>
+<p>To use this lexer you'll need to add <code>lalrpop-util</code> to your <code>Cargo.toml</code> file.</p>
+<pre><code class="language-toml">[dependencies]
+lalrpop-util = { git = &quot;https://github.com/Michael-F-Bryan/lalrpop&quot;, 
+                 features = [&quot;lexer&quot;], 
+                 branch = &quot;custom-lexer&quot; }
+</code></pre>
+<blockquote>
+<p><strong>TODO:</strong> Update to use the official crate instead of the <code>custom-lexer</code>
+branch when <a href="https://github.com/lalrpop/lalrpop/pull/373">lalrpop#373</a> is merged.</p>
+</blockquote>
+<a class="header" href="lexer.html#using-the-lexer" id="using-the-lexer"><h2>Using The Lexer</h2></a>
+<p>We start the lexing process (also called <em>tokenizing</em>) by declaring a <code>Token</code>
+type to represent each token in the Kaleidoscope language.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Token&lt;'input&gt; {
+    Identifier(&amp;'input str),
+    Def,
+}
+#}</code></pre></pre>
+<p>We also need a function which can construct a <code>Lexer</code> and configure it so it
+knows how to skip comments (Kaleidoscope uses <code>#</code> line comments like most
+scripting languages) and teach it how to generate <code>Token</code>s.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+pub fn construct_lexer(src: &amp;str) -&gt; Lexer&lt;Token&gt; {
+    let mut lexer = Lexer::new(src).skipping(r&quot;^\s+|#.*$&quot;);
+
+    // keywords
+    lexer.register_pattern(r&quot;^def&quot;, |_| Ok(Token::Def));
+    lexer.register_pattern(r&quot;^extern&quot;, |_| Ok(Token::Extern));
+
+    // literals
+    lexer.register_pattern(r&quot;^\d+(\.\d+)?&quot;, |s| {
+        Ok(Token::Number(s.parse().expect(&quot;parse never fails&quot;)))
+    });
+
+    // identifiers
+    lexer.register_pattern(r&quot;^[\w][\w\d_]*&quot;, |s| Ok(Token::Identifier(s)));
+
+    lexer
+}
+#}</code></pre></pre>
+<p>And... We're done. That's everything we need to do so <code>lalrpop</code> can parse our
+language using a custom tokenizer.</p>
+<a class="header" href="lexer.html#testing-the-lexer" id="testing-the-lexer"><h2>Testing The Lexer</h2></a>
+<p>As a sanity check, lets add some tests to make sure we can tokenize things
+correctly. These tests are fairly simple, you construct an input string, run it
+through the lexer, then make sure it returns <em>exactly</em> what you expect.</p>
+<p>For example, here's a simple test which makes sure we can recognise a basic
+integer and convert it to a 64-bit floating point number.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recognise_a_number() {
+        let src = &quot;123&quot;;
+        let should_be = Token::Number(123.0);
+
+        let (_start, got, _end) = construct_lexer(src).next().unwrap().unwrap();
+
+        assert_eq!(got, should_be);
+    }
+}
+#}</code></pre></pre>
+<p>This works pretty well, although ideally we'd have to write (at least) one test
+per token type, which requires a lot of copy-pasta. It'd be much nicer to use
+a macro for generating all the boilerplate associated with these tests.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+macro_rules! lexer_test {
+    ($name:ident, $src:expr =&gt; $should_be:expr) =&gt; {
+        #[test]
+        fn $name() {
+            let src = $src;
+            let should_be = Token::from($should_be);
+
+            let (_, got, _) = construct_lexer(src).next()
+                .expect(&quot;Unexpected EOF&quot;)
+                .expect(&quot;Unexpected error&quot;);
+
+            assert_eq!(got, should_be);
+        } 
+    };
+}
+#}</code></pre></pre>
+<p>While we're at it, we'll add a couple <code>From</code> implementations to make
+constructing a <code>Token</code> easier in our tests (notice the <code>Token::from(...)</code> in the
+macro).</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+impl&lt;'a&gt; From&lt;i32&gt; for Token&lt;'a&gt; {
+    fn from(other: i32) -&gt; Token&lt;'a&gt; {
+        Token::Number(other as f64)
+    }
+}
+
+impl&lt;'a&gt; From&lt;f64&gt; for Token&lt;'a&gt; {
+    fn from(other: f64) -&gt; Token&lt;'a&gt; {
+        Token::Number(other)
+    }
+}
+
+impl&lt;'a&gt; From&lt;&amp;'a str&gt; for Token&lt;'a&gt; {
+    fn from(other: &amp;'a str) -&gt; Token&lt;'a&gt; {
+        Token::Identifier(other)
+    }
+}
+#}</code></pre></pre>
+<p>Now we've set things up so adding new lexer tests is almost trivial.</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+lexer_test!(recognise_an_integer, &quot;123&quot; =&gt; 123);
+lexer_test!(recognise_a_decimal, &quot;3.1415&quot; =&gt; 3.1415);
+lexer_test!(recognise_an_ident, &quot;foo&quot; =&gt; &quot;foo&quot;);
+lexer_test!(recognise_def, &quot;def&quot; =&gt; Token::Def);
+lexer_test!(recognise_extern, &quot;extern&quot; =&gt; Token::Extern);
+#}</code></pre></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="parser.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="parser.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+
+        
+        <script src="searchindex.js" type="text/javascript" charset="utf-8"></script>
+        
+        
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+    </body>
+</html>
