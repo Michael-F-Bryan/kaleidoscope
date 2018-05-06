@@ -48,7 +48,35 @@ extern atan2(arg1 arg2);
 atan2(sin(.4), cos(42))
 ```
 
+## Expectations of the Reader
+
+This guide makes a couple assumptions so as to avoid re-teaching the entire Rust
+programming language. As such, you'll want to be familiar with things like 
+`cargo`, generics, structs, enums, and traits.
+
+We try to avoid doing tricky things with lifetimes, mainly because they can add
+unnecessary complexity to code and bending over backwards to skip a copy is
+often premature optimization. That said, it's logical for the `Token` type in
+our first chapter (lexical analysis) to borrow from the source code instead
+of creating loads of intermediate strings. Tokens are quite small, short
+lived objects so it can be beneficial for them to borrow from the original 
+source code.
+
+Think of this document as a general guide to creating a compiler with LLVM
+and not a step-by-step recipe where everything is spelled out in excruciating
+detail. So we'll occasionally elide bits and pieces for brevity (simple
+constructors, `From` impls, etc), leaving them as an exercise for the reader.
+
+## Contributing
+
+If there are any concepts or steps which you feel could do with extra
+explanation or links to background material, feel free to create an issue on the
+repository's [issue tracker] or send in a PR. 
+
+Any help with proofreading or chapter writing is also most welcome.
+
 [tut]: https://llvm.org/docs/tutorial/index.html
 [inkwell]: https://github.com/TheDan64/inkwell
 [lalrpop]: https://github.com/lalrpop/lalrpop
 [syntax]: https://llvm.org/docs/tutorial/LangImpl01.html#id2
+[issue tracker]: https://github.com/Michael-F-Bryan/kaleidoscope/issues
