@@ -1,4 +1,4 @@
-use ast::{File, Item, Span, Ident, FunctionDecl};
+use ast::{File, Item, Span, Ident, FunctionDecl, Function, FunctionCall, Expr, Literal};
 use tokens::Token;
 use codespan::ByteIndex;
 use lalrpop_util::ParseError;
@@ -12,16 +12,49 @@ pub File: File = {
 
 pub Item: Item = {
     <Extern> => Item::Extern(<>),
+    <FunctionDef> => Item::Function(<>),
+};
+
+FunctionDef: Function = {
+    <l:@L> "def" <decl:FunctionDecl> <body:Expr> <r:@R> => Function::new(decl, body, Span::new(l, r)),
 };
 
 Extern: FunctionDecl = {
-    <l:@L> "extern" <name:Ident> "(" ")" <r:@R> => FunctionDecl::new(name, Vec::new(), Span::new(l, r)),
+    <l:@L> "extern" <decl:FunctionDecl> <r:@R> => FunctionDecl { span: Span::new(l, r), ..decl },
+};
+
+FunctionDecl: FunctionDecl = {
+    <l:@L> <name:Ident> "(" <args:Ident*> ")" <r:@R> => FunctionDecl::new(name, args, Span::new(l, r)),
+};
+
+pub Expr: Expr = {
+    <Ident> => Expr::Ident(<>),
+    <Literal> => Expr::Literal(<>),
+    <FunctionCall> => Expr::FunctionCall(<>),
+};
+
+Literal: Literal = {
+    <l:@L> <lit:"literal"> <r:@R> => Literal::new(lit.as_number().unwrap(), Span::new(l, r)),
 };
 
 Ident: Ident = {
     <l:@L> <id:"ident"> <r:@R> => Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
 };
 
+FunctionCall: FunctionCall = {
+    <l:@L> <name:Ident> "(" <args:Comma<Expr>> ")" <r:@R> => FunctionCall::new(name, args, Span::new(l, r)),
+};
+
+Comma<T>: Vec<T> = { 
+    <v:(<T> ",")*> <e:T?> => match e { 
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
 
 extern {
     type Location = ByteIndex;
@@ -29,8 +62,11 @@ extern {
 
     enum Token<'input> {
         "ident" => Token::Identifier(_),
+        "literal" => Token::Number(_),
         "extern" => Token::Extern,
+        "def" => Token::Def,
         "(" => Token::OpenParen,
         ")" => Token::CloseParen,
+        "," => Token::Comma,
     }
 }

@@ -331,9 +331,223 @@ You:
 
 1. Add a test which takes a string of text and write out the type you expect it
    to parse into.
-2. Throw the text at the corresponding `*Parser` type
+2. Throw the text at the corresponding `XXXParser` type
 3. Add a rule matching the language construct to your grammar file
 4. Repeat steps 2 and 3 until the test passes
+
+## Parsing The Rest
+
+Now we've got a better understanding of how to use lalrpop to parse code, lets
+implement the rest of our grammar rules. You'll quickly realise that the code
+written in `grammar.lalrpop` very closely follows the rules we wrote down at the
+beginning of the chapter.
+
+We need to define the following constructs:
+
+- Functions (i.e. function signature + body)
+- Expressions (i.e. ident or literal or function call)
+    - Function calls
+
+We also need to add support for commas to our lexer, but hopefully this should
+be fairly routine for now. Just make sure the following test passes:
+
+```rust
+lexer_test!(recognise_comma, "," => Token::Comma);
+```
+
+First off, as a sanity check lets add a couple tests for parsing identifiers and
+literals. This will make sure the `ExprParser` we're about to define (by adding
+an `Expr` rule to `grammar.lalrpop`) works as expected.
+
+```rust
+#[test]
+fn parse_a_literal() {
+    let src = "123";
+    let lexer = tokens::construct_lexer(src);
+
+    let should_be = Literal::new(123.0, Span::new(ByteIndex(0), ByteIndex(3)));
+    let should_be = Expr::Literal(should_be);
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+
+#[test]
+fn parse_an_ident() {
+    let src = "foo";
+    let lexer = tokens::construct_lexer(src);
+
+    let should_be = Ident::new("foo", Span::new(ByteIndex(0), ByteIndex(3)));
+    let should_be = Expr::Ident(should_be);
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+```
+
+Now we've got some tests to guide us, lets write the `Expr` rule.
+
+```rust
+// src/grammar.lalrpop
+
+pub Expr: Expr = {
+    <Ident> => Expr::Ident(<>),
+    <Literal> => Expr::Literal(<>),
+};
+
+Literal: Literal = {
+    <l:@L> <lit:"literal"> <r:@R> => Literal::new(lit.as_number().unwrap(), Span::new(l, r)),
+};
+
+Ident: Ident = {
+    <l:@L> <id:"ident"> <r:@R> => Ident::new(id.as_ident().unwrap(), Span::new(l, r)),
+};
+```
+
+> **Note:** I've added a couple helper methods to make things easier. The
+> `as_number()` method will return `Some(f64)` when a we get a `Token::Number`,
+> and `None` otherwise. Likewise `as_ident()` will extract the `&'input str` 
+> part from an identifier token. 
+>
+> Lalrpop makes sure the `"ident"` pattern only matches a valid identifier
+> token so we use `unwrap()` because we *know* the conversion will never fail
+> (and if it does, this indicates a programming error so it should ideally
+> blow up loudly).
+
+Next we want to parse a function call into an `Expr::FunctionCall`. The test 
+itself is pretty mundane, although constructing the *exact* AST we expect to
+parse is starting to get rather verbose.
+
+```rust
+#[test]
+fn parse_a_function_call() {
+    let src = "foo(a, b, 123)";
+    let lexer = tokens::construct_lexer(src);
+
+    let name = Ident::new("foo", Span::new(ByteIndex(0), ByteIndex(3)));
+    let args = vec![
+        Expr::Ident(Ident::new("a", Span::new(ByteIndex(4), ByteIndex(5)))),
+        Expr::Ident(Ident::new("b", Span::new(ByteIndex(7), ByteIndex(8)))),
+        Expr::Literal(Literal::new(123.0, Span::new(ByteIndex(10), ByteIndex(13)))),
+    ];
+    let should_be = Expr::FunctionCall(FunctionCall::new(
+        name,
+        args,
+        Span::new(ByteIndex(0), ByteIndex(14)),
+    ));
+
+    let got = ExprParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+```
+
+Implementing the rule is quite trivial though. Don't forget to update the `Expr`
+rule appropriately!
+
+```rust
+pub Expr: Expr = {
+    <Ident> => Expr::Ident(<>),
+    <Literal> => Expr::Literal(<>),
+    <FunctionCall> => Expr::FunctionCall(<>),
+};
+
+FunctionCall: FunctionCall = {
+    <l:@L> <name:Ident> "(" <args:Comma<Expr>> ")" <r:@R> => FunctionCall::new(name, args, Span::new(l, r)),
+};
+
+Comma<T>: Vec<T> = { 
+    <v:(<T> ",")*> <e:T?> => match e { 
+        None => v,
+        Some(e) => {
+            let mut v = v;
+            v.push(e);
+            v
+        }
+    }
+};
+```
+
+You'll notice we included a "macro" (`Comma<T>`) for parsing any comma-separated
+`T`, where `T` can be any arbitrary rule. This is literally copy-pasted from
+the *Macros*" chapter in the lalrpop book and lets us say "*parse a 
+comma-separated list of `Expr`essions and bind them to the `args` variable*" in
+a very concise way.
+
+Last up is to parse a full function, which is made up of a `"def"`, the function
+signature, and a function body. 
+
+Writing out the test for this one is a massive
+pain because of how nested the AST is getting. If you have a suggestion for 
+making these tests easier to write, please let us know by making an [issue] on
+GitHub!!
+
+```rust
+#[test]
+fn parse_a_full_function() {
+    let src = "def foo(a b) add(5, 3.15)";
+    let lexer = tokens::construct_lexer(src);
+
+    let name = Ident::new("foo", Span::new(ByteIndex(4), ByteIndex(7)));
+    let args = vec![
+        Ident::new("a", Span::new(ByteIndex(8), ByteIndex(9))),
+        Ident::new("b", Span::new(ByteIndex(10), ByteIndex(11))),
+    ];
+    let decl = FunctionDecl::new(name, args, Span::new(ByteIndex(4), ByteIndex(12)));
+
+    let call_name = Ident::new("add", Span::new(ByteIndex(13), ByteIndex(16)));
+    let body_args = vec![
+        Expr::Literal(Literal::new(5.0, Span::new(ByteIndex(17), ByteIndex(18)))),
+        Expr::Literal(Literal::new(3.15, Span::new(ByteIndex(20), ByteIndex(24)))),
+    ];
+
+    let body = Expr::FunctionCall(FunctionCall::new(
+        call_name,
+        body_args,
+        Span::new(ByteIndex(13), ByteIndex(25)),
+    ));
+
+    let should_be = Item::Function(Function::new(
+        decl,
+        body,
+        Span::new(ByteIndex(0), ByteIndex(25)),
+    ));
+
+    let got = ItemParser::new().parse(lexer).unwrap();
+    assert_eq!(got, should_be);
+}
+```
+
+As I was writing the rules for parsing a function I took the time to do a little
+refactoring and extract the common code between `extern` and `def` (the function
+signature part) into its own `FunctionDecl` rule.
+
+```rust
+pub Item: Item = {
+    <Extern> => Item::Extern(<>),
+    <FunctionDef> => Item::Function(<>),
+};
+
+FunctionDef: Function = {
+    <l:@L> "def" <decl:FunctionDecl> <body:Expr> <r:@R> => Function::new(decl, body, Span::new(l, r)),
+};
+
+Extern: FunctionDecl = {
+    <l:@L> "extern" <decl:FunctionDecl> <r:@R> => FunctionDecl { span: Span::new(l, r), ..decl },
+};
+
+FunctionDecl: FunctionDecl = {
+    <l:@L> <name:Ident> "(" <args:Ident*> ")" <r:@R> => FunctionDecl::new(name, args, Span::new(l, r)),
+};
+```
+
+> **Hint:** When using tests to make sure the parser gives you *exactly* what 
+> you expect, it often takes a non-trivial amount of time to figure out what's
+> different between the two parse trees you received. This is especially 
+> annoying when updating things like the `Span` indices.
+>
+> The [pretty_assertions] crate overrides the default `assert_eq!()` macro to
+> show a full-colour diff, pointing out *exactly* what's wrong and how you can
+> change it. You may find this useful for testing.
 
 [ast]: https://en.wikipedia.org/wiki/Abstract_syntax_tree
 [grammar]: https://en.wikibooks.org/wiki/Introduction_to_Programming_Languages/Grammars
@@ -343,3 +557,5 @@ You:
 [codespan]: https://github.com/brendanzab/codespan
 [reporting]: https://github.com/brendanzab/codespan/tree/master/codespan-reporting
 [guide]: http://lalrpop.github.io/lalrpop/README.html
+[issue]: https://github.com/Michael-F-Bryan/kaleidoscope/issues
+[pretty_assertions]: https://github.com/colin-kiegel/rust-pretty-assertions

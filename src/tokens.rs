@@ -10,12 +10,20 @@ pub enum Token<'input> {
     Extern,
     OpenParen,
     CloseParen,
+    Comma,
 }
 
 impl<'input> Token<'input> {
     pub fn as_ident(&self) -> Option<&'input str> {
         match *self {
             Token::Identifier(id) => Some(id),
+            _ => None,
+        }
+    }
+
+    pub fn as_number(&self) -> Option<f64> {
+        match *self {
+            Token::Number(n) => Some(n),
             _ => None,
         }
     }
@@ -30,6 +38,7 @@ pub fn construct_lexer(src: &str) -> impl Iterator<Item = Spanned> {
     // punctuation
     lexer.register_pattern(r"^\(", |_| Ok(Token::OpenParen));
     lexer.register_pattern(r"^\)", |_| Ok(Token::CloseParen));
+    lexer.register_pattern(r"^,", |_| Ok(Token::Comma));
 
     // keywords
     lexer.register_pattern(r"^def", |_| Ok(Token::Def));
@@ -95,4 +104,5 @@ mod tests {
     lexer_test!(recognise_extern, "extern" => Token::Extern);
     lexer_test!(recognise_open_paren, "(" => Token::OpenParen);
     lexer_test!(recognise_close_paren, ")" => Token::CloseParen);
+    lexer_test!(recognise_comma, "," => Token::Comma);
 }

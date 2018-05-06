@@ -13,3 +13,6 @@ codespan = "0.1.1"
 
 [build-dependencies]
 lalrpop = "0.15.2"
+
+[dev-dependencies]
+pretty_assertions = "0.5.1"
